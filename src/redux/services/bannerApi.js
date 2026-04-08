@@ -138,6 +138,9 @@ export const bannersApi = createApi({
     getAboutUs: builder.query({
       query: () => "articles/about-us-kldb",
     }),
+    getAboutUsInfo: builder.query({
+      query: () => "articles/about-us-info",
+    }),
     getSireDirectory: builder.query({
       query: () => "siri-directoy",
     }),
@@ -151,10 +154,7 @@ export const bannersApi = createApi({
       query: () => "fpdder-develpement",
     }),
     postVisitorCount: builder.mutation({
-      query: () => ({ url: "visitor-count", method: "POST" }),
-    }),
-    getVisitorCount: builder.query({
-      query: () => "visitor-count",
+      query: () => ({ url: "track-visitor", method: "POST" }),
     }),
   }),
 });
@@ -185,10 +185,10 @@ export const {
   useGetInfrastructureQuery,
   useGetTimelinesQuery,
   useGetAboutUsQuery,
+  useGetAboutUsInfoQuery,
   useGetSireDirectoryQuery,
   useGetTrainingQuery,
   useGetRLFMCQuery,
   useGetFodderDevelopmentQuery,
   usePostVisitorCountMutation,
-  useGetVisitorCountQuery,
 } = bannersApi;

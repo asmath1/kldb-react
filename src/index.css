@@ -1235,3 +1235,15 @@ button,
   .vc-digits { gap: 4px; }
   .visitor-counter { padding: 16px 16px; min-width: 220px; }
 }
+
+/* ---- Visitor Counter stats row ---- */
+.vc-stats {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #a8c4e0;
+}
+.vc-stats i { margin-right: 4px; }
+.vc-online { color: #4caf50; font-size: 9px; vertical-align: middle; }
