@@ -1,15 +1,14 @@
 import React, { useMemo } from "react";
 import Breadcrumb from "../components/common/Breadcrumb";
 import { useGetArticleBySlugQuery } from "../redux/services/bannerApi";
+import { useLang, pickTranslation } from "../context/LanguageContext";
 
 export default function ResearchDevelopment() {
   const { data, isLoading, isError } = useGetArticleBySlugQuery("research-and-development");
+  const { lang } = useLang();
   const article = data?.data;
 
-  const enTranslation = useMemo(() => {
-    const translations = Array.isArray(article?.translations) ? article.translations : [];
-    return translations.find((t) => t?.language === "en" || t?.language_id === 1) || translations[0] || null;
-  }, [article]);
+  const translation = useMemo(() => pickTranslation(article?.translations, lang), [article, lang]);
 
   const sections = useMemo(() => {
     if (!Array.isArray(article?.sections)) return [];
@@ -18,18 +17,19 @@ export default function ResearchDevelopment() {
 
   const sectionTranslation = useMemo(() => {
     const section = sections[0];
-    if (!section || !Array.isArray(section.translations)) return null;
-    return section.translations.find((t) => t.language_id === 1) || section.translations[0] || null;
-  }, [sections]);
+    if (!section) return null;
+    return pickTranslation(section.translations, lang);
+  }, [sections, lang]);
 
   const contentBlocks = useMemo(() => {
+    return Array.isArray(sectionTranslation?.content_blocks) 
     return Array.isArray(sectionTranslation?.content_blocks) ? sectionTranslation.content_blocks : [];
   }, [sectionTranslation]);
 
   return (
     <>
       <Breadcrumb
-        title={enTranslation?.title || "Research and Development"}
+        title={translation?.title || "Research and Development"}
         crumbs={[{ label: "Research and Development" }]}
       />
 
@@ -47,8 +47,8 @@ export default function ResearchDevelopment() {
 
                       {!isLoading && !isError && (
                         <>
-                          {enTranslation?.body ? (
-                            <div className="post-content pt-0 Research_paragraph wow fadeInUp" dangerouslySetInnerHTML={{ __html: enTranslation.body }} />
+                          {translation?.body ? (
+                            <div className="post-content pt-0 Research_paragraph wow fadeInUp" dangerouslySetInnerHTML={{ __html: translation.body }} />
                           ) : contentBlocks.length ? (
                             contentBlocks.map((block, index) => (
                               <div key={index} className="post-content pt-0 Research_paragraph post-content pt-0 wow fadeInUp">

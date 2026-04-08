@@ -172,20 +172,17 @@
 
 import Breadcrumb from "../components/common/Breadcrumb";
 import { useGetCalgQuery } from "../redux/services/bannerApi";
+import { useLang, pickTranslation } from "../context/LanguageContext";
 
 export default function CALG() {
   const { data, isLoading, isError } = useGetCalgQuery();
-
-  const lang = "en";
+  const { lang } = useLang();
 
   if (isLoading) return <p className="text-center mt-5">Loading...</p>;
   if (isError) return <p className="text-center mt-5">Error loading data</p>;
 
   const article = data?.data;
-
-  const translation =
-    article?.translations.find((t) => t.language === lang) ||
-    article?.translations[0];
+  const translation = pickTranslation(article?.translations, lang);
 
   return (
     <>
@@ -203,33 +200,19 @@ export default function CALG() {
                   <h2 className="wow fadeInDown">{translation?.main_title}</h2>
 
                   {translation?.image && (
-                    <img src={translation.image} className="w-100 mb-3" />
+                    <img src={translation.image} className="w-100 mb-3" alt="" />
                   )}
 
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: translation?.body,
-                    }}
-                  />
+                  <div dangerouslySetInnerHTML={{ __html: translation?.body }} />
 
                   {article.sections.map((section) => {
-                    const sec =
-                      section.translations.find(
-                        (t) => t.language_id === (lang === "en" ? 1 : 2),
-                      ) || section.translations[0];
-
+                    const sec = pickTranslation(section.translations, lang);
                     if (!sec?.title && !sec?.content) return null;
-
                     return (
                       <div key={section.id}>
                         <h4 className="subHead2">{sec.title}</h4>
                         <hr />
-
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: sec.content,
-                          }}
-                        />
+                        <div dangerouslySetInnerHTML={{ __html: sec.content }} />
                       </div>
                     );
                   })}

@@ -89,6 +89,10 @@ export const bannersApi = createApi({
       query: (slug) => `galleries/slug/${slug}`,
     }),
 
+    getAdministrationDirectors: builder.query({
+      query: () => "administration-directors",
+    }),
+
     // ✅ ADD THIS NEW API
     getGovtOrders: builder.query({
       query: () => "documents/master/government-orders",
@@ -105,8 +109,53 @@ export const bannersApi = createApi({
       }),
     }),
     getCalg: builder.query({
-  query: () => "articles/calg",
-}),
+      query: () => "articles/calg",
+    }),
+    getImportantPersons: builder.query({
+      query: () => "important-persons",
+    }),
+    getKeyPeopleContacts: builder.query({
+      query: () => "key-people-contacts",
+    }),
+    getFinancialDocuments: builder.query({
+      query: () => "documents/master/financial-information",
+    }),
+    getArticleSchemes: builder.query({
+      query: () => "articles/schemes",
+    }),
+    getEmbryoTransfer: builder.query({
+      query: () => "embryo-transfer-programme",
+    }),
+    getReportsAndPublications: builder.query({
+      query: () => "reports-and-publications",
+    }),
+    getInfrastructure: builder.query({
+      query: () => "articles/infrastructure",
+    }),
+    getTimelines: builder.query({
+      query: () => "timelines",
+    }),
+    getAboutUs: builder.query({
+      query: () => "articles/about-us-kldb",
+    }),
+    getSireDirectory: builder.query({
+      query: () => "siri-directoy",
+    }),
+    getTraining: builder.query({
+      query: () => "articles/training",
+    }),
+    getRLFMC: builder.query({
+      query: () => "articles/rlfmcs",
+    }),
+    getFodderDevelopment: builder.query({
+      query: () => "fpdder-develpement",
+    }),
+    postVisitorCount: builder.mutation({
+      query: () => ({ url: "visitor-count", method: "POST" }),
+    }),
+    getVisitorCount: builder.query({
+      query: () => "visitor-count",
+    }),
   }),
 });
 
@@ -121,9 +170,25 @@ export const {
   useGetNotificationsByCategoryQuery,
   useGetGalleriesQuery,
   useGetGalleryBySlugQuery,
+  useGetAdministrationDirectorsQuery,
   useGetRecruitmentQuery,
   useGetTendersQuery,
   useGetGovtOrdersQuery,
   useGetBreedingScenarioQuery,
-    useGetCalgQuery,
+  useGetCalgQuery,
+  useGetImportantPersonsQuery,
+  useGetKeyPeopleContactsQuery,
+  useGetFinancialDocumentsQuery,
+  useGetArticleSchemesQuery,
+  useGetEmbryoTransferQuery,
+  useGetReportsAndPublicationsQuery,
+  useGetInfrastructureQuery,
+  useGetTimelinesQuery,
+  useGetAboutUsQuery,
+  useGetSireDirectoryQuery,
+  useGetTrainingQuery,
+  useGetRLFMCQuery,
+  useGetFodderDevelopmentQuery,
+  usePostVisitorCountMutation,
+  useGetVisitorCountQuery,
 } = bannersApi;

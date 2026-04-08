@@ -1,414 +1,267 @@
-import React, { useRef } from "react";
+import { useState } from "react";
 import Breadcrumb from "../components/common/Breadcrumb";
+import { useGetInfrastructureQuery } from "../redux/services/bannerApi";
+import { useLang, pickTranslation } from "../context/LanguageContext";
 
-const timelineData = [
-  { year: "1963", place: "Mattupatti Farm", image: "/assets/img/g6.jpg" },
-  { year: "1966", place: "Base Farm, Peermedu", image: "/assets/img/g6.jpg" },
-  {
-    year: "1970",
-    place: "Regional Semen Bank, Mavelikkara",
-    image: "/assets/img/g6.jpg",
-  },
-  { year: "1975", place: "Kulathupuzha Farm", image: "/assets/img/g6.jpg" },
-  { year: "1985", place: "Dhoni Farm, Palakkad", image: "/assets/img/g6.jpg" },
-  { year: "1990", place: "New Expansion Unit", image: "/assets/img/g6.jpg" },
-];
+const BASE = "https://livestock.cditproject.org";
 
-const Infrastructure = () => {
-  const scrollRef = useRef();
+export default function Infrastructure() {
+  const { data, isLoading, error } = useGetInfrastructureQuery();
+  const [activeTab, setActiveTab] = useState(0);
+  const { lang } = useLang();
 
-  const scroll = (direction) => {
-    const scrollAmount = 400;
-    if (direction === "left") {
-      scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-    } else {
-      scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    }
-  };
+  if (isLoading)
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status" />
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="text-center py-5 text-danger">
+        Failed to load content.
+      </div>
+    );
+
+  const article = data?.data;
+  const mainTranslation = pickTranslation(article?.translations, lang);
+
+  const sections = article?.sections?.filter(
+    (s) => s.title || s.image || s.translations?.some((t) => t.content || t.content_2)
+  ) || [];
+
+  const activeSection = sections[activeTab];
+  const activeTrans = pickTranslation(activeSection?.translations, lang);
 
   return (
     <>
       <Breadcrumb
-        title="Infrastructure Development"
-        crumbs={[{ label: "Home" }, { label: "Infrastructure" }]}
+        title={mainTranslation?.title || "Infrastructure"}
+        crumbs={[{ label: "About Us" }, { label: "Infrastructure" }]}
       />
 
       <section className="blog-wrapper section-padding-inner">
         <div className="container">
-          {/* ARROWS */}
-          <div className="timeline-wrapper">
-            <button className="nav-btn left" onClick={() => scroll("left")}>
-              ❮
-            </button>
+          <div className="blog-post-details border-wrap mt-0">
+            <div className="single-blog-post post-details mt-0">
+              <div className="post-content pt-0">
 
-            <div className="timeline-slider" ref={scrollRef}>
-              {timelineData.map((item, index) => (
-                <div className="timeline-item" key={index}>
-                  {/* YEAR (TOP) */}
-                  <div className="timeline-year">{item.year}</div>
+                {/* Intro paragraph */}
+                {mainTranslation?.body && (
+                  <div
+                    className="infra-intro wow fadeInUp"
+                    dangerouslySetInnerHTML={{ __html: mainTranslation.body }}
+                  />
+                )}
 
-                  {/* DOT */}
-                  <div className="timeline-dot"></div>
+                {/* Farm tabs */}
+                {sections.length > 0 && (
+                  <div className="infra-tabs-wrapper wow fadeInUp">
 
-                  {/* CARD (BOTTOM) */}
-                  <div className="timeline-card">
-                    <img src={item.image} alt={item.place} />
-                    <p>{item.place}</p>
+                    {/* Tab buttons */}
+                    <div className="infra-tabs">
+                      {sections.map((sec, i) => (
+                        <button
+                          key={sec.id}
+                          className={`infra-tab-btn ${i === activeTab ? "active" : ""}`}
+                          onClick={() => setActiveTab(i)}
+                        >
+                          {sec.title}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Tab content */}
+                    {activeSection && (
+                      <div className="infra-tab-content">
+                        <div className="infra-content-grid">
+
+                          {/* Left: image + summary */}
+                          <div className="infra-left">
+                            {activeSection.image && (
+                              <img
+                                src={`${BASE}${activeSection.image}`}
+                                alt={activeSection.title}
+                                className="infra-farm-img"
+                              />
+                            )}
+                            {activeTrans?.content && (
+                              <div
+                                className="infra-summary"
+                                dangerouslySetInnerHTML={{ __html: activeTrans.content }}
+                              />
+                            )}
+                            {activeTrans?.content_2 && (
+                              <div
+                                className="infra-details"
+                                dangerouslySetInnerHTML={{ __html: activeTrans.content_2 }}
+                              />
+                            )}
+                          </div>
+
+                          {/* Right: content blocks */}
+                          <div className="infra-right">
+                            {activeTrans?.content_blocks?.map((block, bi) => (
+                              <div
+                                key={bi}
+                                className="infra-block"
+                                dangerouslySetInnerHTML={{ __html: block.body }}
+                              />
+                            ))}
+
+                            {/* Map iframe */}
+                            {activeSection.map_iframe && (
+                              <div className="infra-map">
+                                <iframe
+                                  src={activeSection.map_iframe}
+                                  title={`${activeSection.title} map`}
+                                  allowFullScreen
+                                  loading="lazy"
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                        </div>
+                      </div>
+                    )}
+
                   </div>
-                </div>
-              ))}
-            </div>
+                )}
 
-            <button className="nav-btn right" onClick={() => scroll("right")}>
-              ❯
-            </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CSS */}
       <style>{`
-        .timeline-wrapper {
-          position: relative;
-        }
-          
+        /* Intro */
+        .infra-intro p { font-size: 15px; line-height: 1.85; color: #444; margin-bottom: 12px; }
+        .infra-intro { margin-bottom: 32px; }
 
-        .timeline-slider {
+        /* Tabs wrapper */
+        .infra-tabs-wrapper { margin-top: 8px; }
+
+        /* Tab buttons */
+        .infra-tabs {
           display: flex;
-          gap: 40px;
-          overflow-x: auto;
-          overflow-y: hidden;
-          padding: 50px 40px;
-          position: relative;
+          flex-wrap: wrap;
+          gap: 6px;
+          border-bottom: 2px solid #e0e0e0;
+          margin-bottom: 28px;
+        }
+        .infra-tab-btn {
+          padding: 10px 20px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #555;
+          background: #f5f5f5;
+          border: 1px solid #ddd;
+          border-bottom: none;
+          border-radius: 4px 4px 0 0;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-family: "Encode Sans Condensed", sans-serif;
+          letter-spacing: 0.5px;
+        }
+        .infra-tab-btn:hover { background: #e8f0fe; color: #012660; }
+        .infra-tab-btn.active {
+          background: #012660;
+          color: #FFC400;
+          border-color: #012660;
         }
 
-        /* CENTER LINE */
-       
-          .timeline-slider::before {
-            content: "";
-            position: absolute;
-            top: 120px;
-            left: 0;
-            height: 3px;
-            width: 100%;
-            background: #043d97;
-            z-index: 0;
-          }   
-           .timeline-dot::before {
-            content: "";
-            position: absolute;
-            top: 5px;
-            left: 0;
-            height: 3px;
-            width: 420px;
-            background: #043d97;
-            z-index: 0;
-          }
-             .timeline-dot::after {
-              content: "";
-              position: absolute;
-              top: 5px;
-              left: 0;
-              height: 3px;
-              width: 220px;
-              background: #043d97;
-              z-index: 0;
-           }
-            .timeline-slider::-webkit-scrollbar {
-              display: none;
-            }
-            .timeline-item {
-              min-width: 380px;
-              text-align: center;
-              position: relative;
-              z-index: 1;
-            }
+        /* Content grid */
+        .infra-content-grid {
+          display: grid;
+          grid-template-columns: 340px 1fr;
+          gap: 32px;
+          align-items: start;
+        }
 
-            /* YEAR (TOP) */
-            .timeline-year {
-              font-size: 18px;
-              font-weight: bold;
-              color: var(--theme-color);
-              margin-bottom: 20px;
-            }
+        /* Farm image */
+        .infra-farm-img {
+          width: 100%;
+          border-radius: 8px;
+          object-fit: cover;
+          max-height: 240px;
+          margin-bottom: 16px;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
 
-            /* DOT */
-            .timeline-dot {
-              width: 14px;
-              height: 14px;
-              background: #043d97;
+        /* Summary badge */
+        .infra-summary {
+          background: #f0f4ff;
+          border-left: 4px solid #FFC400;
+          padding: 12px 16px;
+          border-radius: 0 6px 6px 0;
+          font-size: 13px;
+          color: #555;
+          margin-bottom: 14px;
+        }
+        .infra-summary p { margin: 0; font-size: 13px; }
 
-              border-radius: 50%;
-              margin: 0 auto;
-              position: relative;
-              top: -5px;
-              z-index: 2;
-            }
+        /* Details (year, area, functions) */
+        .infra-details {
+          background: #fff;
+          border: 1px solid #e8e8e8;
+          border-radius: 6px;
+          padding: 14px 16px;
+          font-size: 13px;
+          line-height: 1.8;
+          color: #444;
+        }
+        .infra-details p { margin-bottom: 6px; font-size: 13px; }
+        .infra-details strong { color: #012660; }
 
-            /* CARD BELOW LINE */
-            .timeline-card {
-              background: #f5f9ff;
-              margin-top: 30px;
-              padding: 12px;
-              border-radius: 10px;
-              box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-              transition: 0.3s;
-            }
+        /* Right content blocks */
+        .infra-block {
+          font-size: 14px;
+          line-height: 1.85;
+          color: #444;
+          margin-bottom: 20px;
+        }
+        .infra-block p { margin-bottom: 10px; font-size: 14px; }
+        .infra-block strong { color: #012660; }
+        .infra-block table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 12px 0;
+          font-size: 13px;
+        }
+        .infra-block table td {
+          padding: 8px 10px;
+          border: 1px solid #ddd;
+          vertical-align: top;
+        }
+        .infra-block table tr:nth-child(even) td { background: #f9f9f9; }
 
-            .timeline-card:hover {
-              transform: translateY(-5px);
-            }
+        /* Map */
+        .infra-map {
+          margin-top: 20px;
+          border-radius: 8px;
+          overflow: hidden;
+          border: 1px solid #ddd;
+        }
+        .infra-map iframe {
+          width: 100%;
+          height: 280px;
+          border: none;
+          display: block;
+        }
 
-            .timeline-card img {
-              width: 100%;
-              
-              object-fit: cover;
-              border-radius: 6px;
-              margin-bottom: 10px;
-            }
-
-            .timeline-card p {
-              font-size: 14px;
-              font-weight: 600;
-              margin: 0;
-            }
-
-            /* NAV BUTTONS */
-            .nav-btn {
-              position: absolute;
-              top: 50%;
-              transform: translateY(-50%);
-              background: rgb(255, 196, 0);
-              color: #fff;
-              border: none;
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
-              cursor: pointer;
-              z-index: 10;
-            }
-
-            .nav-btn.left {
-              left: 0;
-            }
-
-            .nav-btn.right {
-              right: 0;
-            }
-
-            .nav-btn:hover {
-              background: #084298;
-            }
-
-            /* MOBILE */
-            @media (max-width: 768px) {
-              .timeline-item {
-                min-width: 220px;
-              }
-
-              .timeline-slider {
-                padding: 50px 20px;
-              }
-            }
+        /* Responsive */
+        @media (max-width: 900px) {
+          .infra-content-grid { grid-template-columns: 1fr; }
+          .infra-farm-img { max-height: 200px; }
+        }
+        @media (max-width: 576px) {
+          .infra-tab-btn { padding: 8px 12px; font-size: 12px; }
+          .infra-map iframe { height: 200px; }
+        }
       `}</style>
     </>
   );
-};
-
-export default Infrastructure;
-
-// import React from "react";
-// import Breadcrumb from "../components/common/Breadcrumb";
-
-// const timelineData = [
-//   {
-//     year: "Mattupatti",
-//     title: "Semen Production Station",
-//     description:
-//       "One of the premier semen production stations with modern facilities and international standards for breeding programs.",
-//     image: "/assets/img/g6.jpg",
-//   },
-//   {
-//     year: "Kulathupuzha",
-//     title: "Bull Mother Farm",
-//     description:
-//       "Maintains elite animals and supports breeding programs with superior genetics.",
-//     image: "/assets/img/g6.jpg",
-//   },
-//   {
-//     year: "Dhoni",
-//     title: "Semen Station",
-//     description:
-//       "Advanced semen production and storage unit supporting AI services across Kerala.",
-//     image: "/assets/img/g6.jpg",
-//   },
-//   {
-//     year: "Regional Centers",
-//     title: "Regional Semen Banks",
-//     description:
-//       "Strategically located semen banks ensure timely supply to AI centers.",
-//     image: "/assets/img/g6.jpg",
-//   },
-// ];
-
-// const Infrastructure = () => {
-//   return (
-//     <>
-//       <Breadcrumb
-//         title="Infrastructure Development"
-//         crumbs={[
-//           { label: "Home" },
-//           { label: "Infrastructure Development" },
-//         ]}
-//       />
-
-//       <section className="blog-wrapper section-padding-inner">
-//         <div className="container">
-//           <div className="Infrastructuredvpmt_wrapper">
-
-//             <section className="timeline">
-//               <h2 className="text-center mb-5">
-//                 Infrastructure Development
-//               </h2>
-
-//               <div className="timeline-container">
-
-//                 {timelineData.map((item, index) => (
-//                   <div
-//                     key={index}
-//                     className={`timeline-item ${
-//                       index % 2 === 0 ? "left" : "right"
-//                     }`}
-//                   >
-//                     <div className="timeline-content">
-
-//                       {/* IMAGE */}
-//                       <div className="timeline-image">
-//                         <img src={item.image} alt={item.title} />
-//                       </div>
-
-//                       {/* TEXT */}
-//                       <div className="timeline-text">
-//                         <h4>{item.year}</h4>
-//                         <h3>{item.title}</h3>
-//                         <p>{item.description}</p>
-//                       </div>
-
-//                     </div>
-//                   </div>
-//                 ))}
-
-//               </div>
-//             </section>
-
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* INLINE CSS */}
-//       <style>{`
-//         .timeline-container {
-//           position: relative;
-//           max-width: 1100px;
-//           margin: auto;
-//         }
-
-//         .timeline-container::after {
-//           content: '';
-//           position: absolute;
-//           width: 4px;
-//           background: #0b5ed7;
-//           top: 0;
-//           bottom: 0;
-//           left: 50%;
-//           margin-left: -2px;
-//         }
-
-//         .timeline-item {
-//           padding: 20px 40px;
-//           position: relative;
-//           width: 50%;
-//         }
-
-//         .timeline-item.left {
-//           left: 0;
-//         }
-
-//         .timeline-item.right {
-//           left: 50%;
-//         }
-
-//         .timeline-content {
-//           background: #fff;
-//           padding: 20px;
-//           border-radius: 10px;
-//           box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-//         }
-
-//         .timeline-image img {
-//           width: 100%;
-//           height: 220px;
-//           object-fit: cover;
-//           border-radius: 8px;
-//           margin-bottom: 15px;
-//         }
-
-//         .timeline-text h4 {
-//           color: #0b5ed7;
-//           margin-bottom: 5px;
-//         }
-
-//         .timeline-text h3 {
-//           font-size: 18px;
-//           margin-bottom: 10px;
-//         }
-
-//         .timeline-text p {
-//           font-size: 14px;
-//           color: #555;
-//         }
-
-//         /* DOT */
-//         .timeline-item::after {
-//           content: '';
-//           position: absolute;
-//           width: 18px;
-//           height: 18px;
-//           right: -9px;
-//           background: #0b5ed7;
-//           border: 3px solid #fff;
-//           top: 30px;
-//           border-radius: 50%;
-//           z-index: 1;
-//         }
-
-//         .timeline-item.right::after {
-//           left: -9px;
-//         }
-
-//         /* MOBILE */
-//         @media (max-width: 768px) {
-//           .timeline-container::after {
-//             left: 20px;
-//           }
-
-//           .timeline-item {
-//             width: 100%;
-//             padding-left: 50px;
-//             padding-right: 20px;
-//           }
-
-//           .timeline-item.right {
-//             left: 0;
-//           }
-
-//           .timeline-item::after {
-//             left: 11px;
-//           }
-//         }
-//       `}</style>
-//     </>
-//   );
-// };
-
-// export default Infrastructure;
+}

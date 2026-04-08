@@ -1781,9 +1781,7 @@ p {
     gap: 20px;
   }
 }
-.top-logo img {
-  width: 300px;
-}
+
 .header-main .sidebar__toggle {
   cursor: pointer;
   font-size: 20px;
@@ -1830,7 +1828,8 @@ p {
 }
 
 .header-top-section .header-top-wrapper .top-logo {
-  margin-left: -115px;
+  /* margin-left: -115px; */
+  display: flex;
 }
 
 .header-top-section .header-top-wrapper .header-contact-list {
@@ -20063,7 +20062,7 @@ p.sticky-label {
 }
 
 .footer-widget-wrapper-4 {
-  padding: 90px 0 120px;
+  padding: 90px 0 40px;
 }
 
 @media (max-width: 1199px) {
@@ -21304,8 +21303,8 @@ p.sticky-label {
 .documents_wrapp .scheme-card {
   background: #fff;
   border-radius: 10px;
-  padding: 20px 25px;
-  margin-bottom: 25px;
+  padding: 10px 25px;
+  margin-bottom: 20px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
   transition: 0.3s;
   display: flex;

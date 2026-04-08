@@ -1,22 +1,18 @@
 import React, { useState } from "react";
 import Breadcrumb from "../components/common/Breadcrumb";
 import { useGetBreedingScenarioQuery } from "../redux/services/bannerApi";
+import { useLang, pickTranslation } from "../context/LanguageContext";
 
 export default function Scenario() {
   const { data, isLoading, error } = useGetBreedingScenarioQuery();
+  const { lang } = useLang();
   const [open, setOpen] = useState(0);
 
-  // 🔹 Loading & Error Handling
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading data</div>;
 
-  // 🔹 Get correct translation (EN fallback)
   const section = data?.data?.sections?.[0];
-
-  const translation =
-    section?.translations?.find((t) => t.language_id === 1) ||
-    section?.translations?.[0];
-
+  const translation = pickTranslation(section?.translations, lang);
   const blocks = translation?.content_blocks || [];
 
   // 🔹 Fix HTML issues from API

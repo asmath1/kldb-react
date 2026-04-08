@@ -1,15 +1,14 @@
 import React, { useMemo } from 'react'
 import Breadcrumb from '../components/common/Breadcrumb'
 import { useGetArticleBySlugQuery } from '../redux/services/bannerApi'
+import { useLang, pickTranslation } from '../context/LanguageContext'
 
 export default function Objectives() {
   const { data, isLoading, isError } = useGetArticleBySlugQuery('objectives-and-responsibilities1')
+  const { lang } = useLang()
   const article = data?.data
 
-  const enTranslation = useMemo(() => {
-    const list = Array.isArray(article?.translations) ? article.translations : []
-    return list.find(t => t?.language === 'en' || t?.language_id === 1) || list[0] || null
-  }, [article])
+  const translation = useMemo(() => pickTranslation(article?.translations, lang), [article, lang])
 
   const sections = useMemo(() => {
     if (!article?.sections) return []
@@ -19,7 +18,7 @@ export default function Objectives() {
   return (
     <>
       <Breadcrumb
-        title={enTranslation?.title || 'Objectives & Responsibilities'}
+        title={translation?.title || 'Objectives & Responsibilities'}
         crumbs={[{ label: 'About Us', path: '/about' }, { label: 'Objectives' }]}
       />
 
@@ -30,24 +29,21 @@ export default function Objectives() {
               <div className="col-12">
                 <div className="blog-post-details border-wrap mt-0">
                   <div className="single-blog-post post-details mt-0">
-                    {/* <div className="post-content pt-0"> */}
 
                       {isLoading && <p className="wow fadeInUp">Loading content...</p>}
                       {isError && <p className="wow fadeInUp">Failed to load content.</p>}
 
-                      {!isLoading && !isError && sections.map((section, index) => {
-                        const sectionEn = section.translations?.find(t => t.language_id === 1) || section.translations?.[0]
+                      {!isLoading && !isError && sections.map((section) => {
+                        const sectionT = pickTranslation(section.translations, lang)
                         return (
                           <div key={section.id} className="post-content pt-0 wow fadeInUp">
-                            {sectionEn?.title && <h2 className="wow fadeInDown">{sectionEn.title}</h2> }
-                            {sectionEn?.content && (
-                              <div dangerouslySetInnerHTML={{ __html: sectionEn.content }} />
+                            {sectionT?.title && <h2 className="wow fadeInDown">{sectionT.title}</h2>}
+                            {sectionT?.content && (
+                              <div dangerouslySetInnerHTML={{ __html: sectionT.content }} />
                             )}
                           </div>
                         )
                       })}
-
-                    {/* </div> */}
                   </div>
                 </div>
               </div>

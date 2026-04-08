@@ -1,75 +1,56 @@
-import React from "react";
 import Breadcrumb from "../components/common/Breadcrumb";
+import { useGetRLFMCQuery } from "../redux/services/bannerApi";
+import { useLang, pickTranslation } from "../context/LanguageContext";
+
+const BASE = "https://livestock.cditproject.org";
 
 export default function RLFMC() {
+  const { data, isLoading, isError } = useGetRLFMCQuery();
+  const { lang } = useLang();
+
+  if (isLoading) return <div className="text-center py-5"><div className="spinner-border text-primary" role="status" /></div>;
+  if (isError) return <div className="text-center py-5 text-danger">Failed to load content.</div>;
+
+  const article = data?.data;
+  const t = pickTranslation(article?.translations, lang);
+  const gallery = article?.gallery || [];
+
   return (
     <>
       <Breadcrumb
-        title="The Centre for Applied Livestock Genomic Laboratory (CALG)RLFMCs"
-        crumbs={[
-          {
-            label: "RLFMCs",
-          },
-        ]}
+        title="RLFMCs"
+        crumbs={[{ label: "RLFMCs" }]}
       />
 
       <section className="blog-wrapper section-padding-inner">
         <div className="container">
-          <div className="news-area">
-            <div className="row">
-              <div className="col-12">
-                <div className="blog-post-details border-wrap mt-0">
-                  <div className="single-blog-post post-details mt-0">
-                    <div className="post-content pt-0">
-                      <h2 className="wow fadeInDown">
-                        Regional Livestock Fertility Management Centres (RLFMCs)
-                        at Chithara (Kollam), Thalayolaparambu (Kottayam)
-                      </h2>
+          <div className="blog-post-details border-wrap mt-0">
+            <div className="single-blog-post post-details mt-0">
+              <div className="post-content pt-0">
 
-                      <br />
+                {t?.main_title && (
+                  <h2 className="wow fadeInDown">{t.main_title}</h2>
+                )}
 
-                      <ul className="checked-list mb-4 wow fadeInUp mt-0">
-                        <li>
-                          Established to provide doorstep fertility management
-                          services to dairy farmers.
-                        </li>
-                        <li>
-                          Offer diagnostic, therapeutic, and reproductive
-                          management support
-                        </li>
-                        <li>Support with embryo transfer programme</li>
-                      </ul>
+                {t?.body && (
+                  <div className="wow fadeInUp mt-3" dangerouslySetInnerHTML={{ __html: t.body }} />
+                )}
 
-                      <div className="row">
-                        <div className="col-md-6">
-                          <img
-                            src="/assets/img/calg1.png"
-                            className="w-100 m-0 wow fadeInUp"
-                            alt="RLFMC"
-                          />
-                        </div>
-
-                        <div className="col-md-6">
-                          <img
-                            src="/assets/img/calg2.JPG"
-                            className="w-100 m-0 wow fadeInUp"
-                            alt="RLFMC Vehicle"
-                          />
-                          <small>Mobile ET-IVF vehicles of RLFMC</small>
-                        </div>
-
-                        <div className="col-md-6 mt-3">
-                          <img
-                            src="/assets/img/cvf4.JPG"
-                            className="w-100 m-0 wow fadeInUp"
-                            alt="RLFMC Vehicle"
-                          />
-                          <small>Mobile ET-IVF vehicles of RLFMC</small>
-                        </div>
+                {gallery.length > 0 && (
+                  <div className="row mt-4">
+                    {gallery.map((img, i) => (
+                      <div key={i} className="col-md-6 mb-3">
+                        <img
+                          src={`${BASE}${img.url}`}
+                          className="w-100 m-0 wow fadeInUp img-fluid rounded"
+                          alt={img.caption || "RLFMC"}
+                        />
+                        {img.caption && <small className="d-block mt-1 text-muted">{img.caption}</small>}
                       </div>
-                    </div>
+                    ))}
                   </div>
-                </div>
+                )}
+
               </div>
             </div>
           </div>

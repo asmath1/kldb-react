@@ -1,201 +1,84 @@
-import React from "react";
 import Breadcrumb from "../components/common/Breadcrumb";
+import { useGetSireDirectoryQuery } from "../redux/services/bannerApi";
+import { useLang, pickTranslation } from "../context/LanguageContext";
 
-const sireData = [
-  {
-    title: "MATTUPATTY",
-    headClass: "head-blue",
-    items: [
-      { name: "Sire directory 2023-24", new: true },
-      { name: "Sire directory 2022-23" },
-      { name: "Sire directory 2019-Part I" },
-      { name: "Sire directory 2019-Part II" },
-      { name: "Sire directory 2019-Part III" },
-    ],
-  },
-  {
-    title: "DHONI",
-    headClass: "head-green",
-    items: [
-      { name: "Sire directory 2019-Part I" },
-      { name: "Sire directory 2019-Part II" },
-      { name: "Sire directory 2019-Part III" },
-    ],
-  },
-  {
-    title: "KULATHUPUZHA",
-    headClass: "head-orange",
-    items: [
-      { name: "Sire directory 2024-25", new: true },
-      { name: "Sire directory 2023-24", new: true },
-      { name: "Sire directory 2019-Part I" },
-      { name: "Sire directory 2019-Part II" },
-      { name: "Sire directory 2019-Part III" },
-    ],
-  },
-  {
-    title: "INDIGENOUS BREEDS",
-    headClass: "head-gray",
-    items: [
-      { name: "Sire directory 2019-Part II" },
-      { name: "Sire directory 2019-Part III" },
-    ],
-  },
-];
+const BASE = "https://livestock.cditproject.org";
 
-const financialData = [
-  {
-    title: "MATTUPATTY",
-    headClass: "head-blue",
-    items: [{ name: "Sire directory 2023-24", new: true }],
-  },
-  {
-    title: "DHONI",
-    headClass: "head-green",
-    items: [{ name: "Sire directory 2019-Part I" }],
-  },
-  {
-    title: "KULATHUPUZHA",
-    headClass: "head-orange",
-    items: [{ name: "Sire directory 2024-25", new: true }],
-  },
-];
+const HEAD_COLORS = ["head-blue", "head-green", "head-orange", "head-gray", "head-blue", "head-green"];
 
 export default function SireDirectory() {
+  const { data, isLoading, isError } = useGetSireDirectoryQuery();
+  const { lang } = useLang();
+
+  if (isLoading) return <div className="text-center py-5"><div className="spinner-border text-primary" role="status" /></div>;
+  if (isError) return <div className="text-center py-5 text-danger">Failed to load data.</div>;
+
+  const masters = data?.masters || [];
+
   return (
     <>
       <Breadcrumb title="Sire Directory" crumbs={[{ label: "Sire Directory" }]} />
 
       <section className="blog-wrapper section-padding-inner">
         <div className="container">
-          <div className="news-area">
-            <div className="row">
-              <div className="col-12">
-                <div className="blog-post-details border-wrap mt-0">
-                  <div className="single-blog-post post-details py-3 mt-0">
-                    <div className="post-content pb-2">
+          <div className="blog-post-details border-wrap mt-0">
+            <div className="single-blog-post post-details py-3 mt-0">
+              <div className="post-content pb-2">
+                <div className="sireD">
 
-                      <div className="sireD">
-                        {/* SIRE DIRECTORY */}
-                        <h2 className="text-center wow fadeInDown">
-                          SIRE Directory
-                        </h2>
-                        <hr />
+                  {masters.map((masterObj, mi) => (
+                    <div key={mi} className="mb-5">
+                      <h2 className="text-center wow fadeInDown">{masterObj.master?.title}</h2>
+                      <hr />
 
-                        <div className="sire-wrap mb-4">
-                          <div className="row">
-                            {sireData.map((col, i) => (
-                              <div className="col-md-3" key={i}>
-                                <div className="sire-column">
-                                  <div className="sire-card">
-
-                                    <div className={`sire-head ${col.headClass}`}>
-                                      <img
-                                        src="/assets/img/placeholder.png"
-                                        className="loca m-0"
-                                        alt=""
-                                      />
-                                      <h5>{col.title}</h5>
-                                    </div>
-
-                                    <div className="sire-list">
-                                      <ol className="p-0">
-                                        {col.items.map((item, idx) => (
-                                          <li key={idx}>
+                      <div className="sire-wrap mb-4">
+                        <div className="row">
+                          {masterObj.sections?.map((section, si) => (
+                            <div className={`col-md-${Math.max(3, Math.floor(12 / (masterObj.sections.length || 1)))}`} key={section.section_id}>
+                              <div className="sire-column">
+                                <div className="sire-card">
+                                  <div className={`sire-head ${HEAD_COLORS[si % HEAD_COLORS.length]}`}>
+                                    <h5>{section.section_title}</h5>
+                                  </div>
+                                  <div className="sire-list">
+                                    <ol className="p-0">
+                                      {section.documents?.length === 0 && (
+                                        <li className="text-muted" style={{ padding: '8px 12px', fontSize: 13 }}>No documents available</li>
+                                      )}
+                                      {section.documents?.map((doc) => {
+                                        const t = pickTranslation(doc.translations, lang);
+                                        const file = doc.files?.[0];
+                                        const isNew = doc.published_date
+                                          ? (Date.now() - new Date(doc.published_date).getTime()) < 30 * 24 * 60 * 60 * 1000
+                                          : false;
+                                        return (
+                                          <li key={doc.id}>
                                             <a
-                                              href="/assets/img/sdmty23-24.pdf"
+                                              href={file?.file_url || "#"}
                                               target="_blank"
                                               rel="noreferrer"
                                               className="pdff"
                                             >
                                               <p>
-                                                {item.name}
-                                                {item.new && (
-                                                  <span className="badge-new">
-                                                    New!
-                                                  </span>
-                                                )}
+                                                {t?.title || doc.translations?.[0]?.title}
+                                                {isNew && <span className="badge-new">New!</span>}
                                               </p>
-                                              <img
-                                                src="/assets/img/file-download1.svg"
-                                                className="m-0 pdf-icon"
-                                                alt=""
-                                              />
+                                              <img src="/assets/img/file-download1.svg" className="m-0 pdf-icon" alt="" />
                                             </a>
                                           </li>
-                                        ))}
-                                      </ol>
-                                    </div>
-
+                                        );
+                                      })}
+                                    </ol>
                                   </div>
                                 </div>
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
                         </div>
-
-                        {/* FINANCIAL INFORMATION */}
-                        <h2 className="text-center wow fadeInDown">
-                          Financial Information
-                        </h2>
-                        <hr />
-
-                        <div className="sire-wrap">
-                          <div className="row">
-                            {financialData.map((col, i) => (
-                              <div className="col-md-4" key={i}>
-                                <div className="sire-column">
-                                  <div className="sire-card">
-
-                                    <div className={`sire-head ${col.headClass}`}>
-                                      <img
-                                        src="/assets/img/placeholder.png"
-                                        className="loca m-0"
-                                        alt=""
-                                      />
-                                      <h5>{col.title}</h5>
-                                    </div>
-
-                                    <div className="sire-list">
-                                      <ol className="p-0">
-                                        {col.items.map((item, idx) => (
-                                          <li key={idx}>
-                                            <a
-                                              href="/assets/img/sdmty23-24.pdf"
-                                              target="_blank"
-                                              rel="noreferrer"
-                                              className="pdff"
-                                            >
-                                              <p>
-                                                {item.name}
-                                                {item.new && (
-                                                  <span className="badge-new">
-                                                    New!
-                                                  </span>
-                                                )}
-                                              </p>
-                                              <img
-                                                src="/assets/img/file-download1.svg"
-                                                className="m-0 pdf-icon"
-                                                alt=""
-                                              />
-                                            </a>
-                                          </li>
-                                        ))}
-                                      </ol>
-                                    </div>
-
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
                       </div>
-
                     </div>
-                  </div>
+                  ))}
+
                 </div>
               </div>
             </div>
@@ -205,45 +88,3 @@ export default function SireDirectory() {
     </>
   );
 }
-
-
-// import Breadcrumb from '../components/common/Breadcrumb'
-
-// export default function SireDirectory() {
-//   return (
-//     <>
-//       <Breadcrumb title="SIRE Directory" crumbs={[{ label: 'Downloads' }, { label: 'SIRE Directory' }]} />
-//       <section className="blog-wrapper section-padding-inner">
-//         <div className="container">
-//           <div className="news-area">
-//             <div className="row">
-//               <div className="col-12">
-//                 <div className="blog-post-details border-wrap mt-0">
-//                   <div className="single-blog-post post-details mt-0">
-//                     <div className="post-content pt-0">
-//                       <h2 className="wow fadeInDown">SIRE Directory</h2>
-//                       <p className="wow fadeInUp">
-//                         The SIRE Directory contains details of all bulls maintained at KLDB bull stations. The directory includes information on breed, pedigree, production records, and semen availability.
-//                       </p>
-//                       <div className="row mt-4">
-//                         <div className="col-md-4 mb-3">
-//                           <div className="card h-100 wow fadeInUp" style={{ border: '1px solid #e9e9e9' }}>
-//                             <div className="card-body text-center">
-//                               <i className="fas fa-file-pdf" style={{ fontSize: 48, color: '#e74c3c', marginBottom: 12, display: 'block' }}></i>
-//                               <h5 className="card-title">SIRE Directory 2024</h5>
-//                               <a href="#" className="theme-btn mt-3" style={{ fontSize: 14 }}>Download <i className="fas fa-download"></i></a>
-//                             </div>
-//                           </div>
-//                         </div>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </section>
-//     </>
-//   )
-// }

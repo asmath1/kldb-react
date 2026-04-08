@@ -1,18 +1,30 @@
 ﻿import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useGetMenusQuery } from "../../redux/services/bannerApi";
+import { useLang } from "../../context/LanguageContext";
 
 export default function Header() {
   const [sticky, setSticky] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState({});
   const location = useLocation();
+  const { lang, setLang } = useLang();
+  const [langOpen, setLangOpen] = useState(false);
 
-  const { data: menus, isLoading: menusLoading, isError: menusError } = useGetMenusQuery();
+  const {
+    data: menus,
+    isLoading: menusLoading,
+    isError: menusError,
+  } = useGetMenusQuery();
 
   const getMenuTitle = (item) => {
-    const translations = Array.isArray(item?.translations) ? item.translations : [];
-    const preferred = translations.find((t) => t?.language_code === "en" || t?.language_id === 1) || translations[0];
+    const translations = Array.isArray(item?.translations)
+      ? item.translations
+      : [];
+    const preferred =
+      translations.find(
+        (t) => t?.language_code === "en" || t?.language_id === 1,
+      ) || translations[0];
     return (preferred?.title || item?.title || item?.slug || "Untitled").trim();
   };
 
@@ -46,7 +58,7 @@ export default function Header() {
 
   const menuItems = useMemo(() => {
     if (!Array.isArray(menus)) return [];
-    const sortByOrder = (a, b) => (Number(a?.order || 0) - Number(b?.order || 0));
+    const sortByOrder = (a, b) => Number(a?.order || 0) - Number(b?.order || 0);
 
     const normalize = (items = []) =>
       items
@@ -54,7 +66,9 @@ export default function Header() {
         .sort(sortByOrder)
         .map((item) => ({
           ...item,
-          children: Array.isArray(item.children) ? normalize(item.children) : [],
+          children: Array.isArray(item.children)
+            ? normalize(item.children)
+            : [],
         }));
 
     return normalize(menus);
@@ -68,9 +82,13 @@ export default function Header() {
       const hasChildren = childItems.length > 0;
       const isActive =
         path !== "#" &&
-        (location.pathname.replace(/\/$/, "") === path.replace(/\/$/, "") || location.pathname === path);
+        (location.pathname.replace(/\/$/, "") === path.replace(/\/$/, "") ||
+          location.pathname === path);
 
-      const className = [hasChildren ? "has-dropdown" : "", isActive ? "active" : ""]
+      const className = [
+        hasChildren ? "has-dropdown" : "",
+        isActive ? "active" : "",
+      ]
         .filter(Boolean)
         .join(" ");
 
@@ -88,17 +106,22 @@ export default function Header() {
           </a>
         );
       } else {
-        linkElement = <Link to={path}>{title} {hasChildren && <i className="fas fa-chevron-right"></i>}</Link>;
+        linkElement = (
+          <Link to={path}>
+            {title} {hasChildren && <i className="fas fa-chevron-right"></i>}
+          </Link>
+        );
       }
 
       return (
         <li key={item.id || title} className={className}>
           {linkElement}
-          {hasChildren && <ul className="submenu">{renderMenuList(childItems)}</ul>}
+          {hasChildren && (
+            <ul className="submenu">{renderMenuList(childItems)}</ul>
+          )}
         </li>
       );
     });
-
 
   useEffect(() => {
     const onScroll = () => setSticky(window.scrollY > 250);
@@ -111,6 +134,13 @@ export default function Header() {
     setOpenDropdowns({});
   }, [location]);
 
+  // Close lang dropdown on outside click
+  useEffect(() => {
+    if (!langOpen) return;
+    const close = () => setLangOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [langOpen]);
 
   const toggleDrop = (key) => {
     setOpenDropdowns((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -146,7 +176,11 @@ export default function Header() {
               <div className="offcanvas__top mb-5 d-flex justify-content-between align-items-center">
                 <div className="offcanvas__logo">
                   <Link to="/">
-                    <img className="" src="/assets/img/logi.svg" alt="logo-img"  />
+                    <img
+                      className=""
+                      src="/assets/img/logi.svg"
+                      alt="logo-img"
+                    />
                   </Link>
                 </div>
                 <div className="offcanvas__close">
@@ -164,6 +198,9 @@ export default function Header() {
               </p>
               <div className="mobile-menu fix mt-15"></div>
               <div className="social-icon d-flex align-items-center">
+                <a href="#">
+                  <i className="fab fa-plystore"></i>
+                </a>
                 <a href="#">
                   <i className="fab fa-facebook-f"></i>
                 </a>
@@ -228,28 +265,99 @@ export default function Header() {
       <div className="header-top-section">
         <div className="container">
           <div className="header-top-wrapper">
+            <Link to="/" className="top-logo">
+              <img src="/assets/img/head-logo.svg" width="250" alt="img" />
+              <div className="logo-sec"> 
+                <h4>KERALA LIVESTOCK DEVELOPMENT BOARD</h4>
+              <h6>A Govt of Kerala Undertaking</h6>
+              </div>
+             
+            </Link>
             <ul className="header-contact-list">
-              <li>
+              {/* <li>
                 <i className="fal fa-envelope"></i>
                 <a href="mailto:kldboard8@gmail.com">kldboard8@gmail.com</a>
               </li>
               <li>
                 <i className="far fa-phone-alt"></i>
                 <a href="tel:04712440920">0471- 2440920 | 2449138</a>
-              </li>
+              </li> */}
             </ul>
-            <Link to="/" className="top-logo">
-              <img src="/assets/img/loko.svg" width="250" alt="img" />
-            </Link>
+
             <div className="head-right">
-              <div className="flag-wrap">
-                <select className="single-select w-100">
-                  <option lang="ml">മലയാളം</option>
-                  <option>English</option>
-                </select>
+              <div className="lang-switcher">
+                <button
+                  className="lang-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLangOpen((o) => !o);
+                  }}
+                >
+                  <i className="fas fa-globe" />
+                  <span>{lang === "ml" ? "മലയാളം" : "English"}</span>
+                  <i
+                    className={`fas fa-chevron-down lang-arrow${langOpen ? " rotated" : ""}`}
+                  />
+                </button>
+                {langOpen && (
+                  <ul className="lang-dropdown">
+                    {[
+                      { value: "en", label: "English" },
+                      { value: "ml", label: "മലയാളം" },
+                    ].map((opt) => (
+                      <li
+                        key={opt.value}
+                        className={lang === opt.value ? "active" : ""}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLang(opt.value);
+                          setLangOpen(false);
+                        }}
+                      >
+                        {opt.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               <div className="line-shape"></div>
+
               <div className="social-icon">
+                {/* Google Play Store */}
+                <a href="#">
+                  <i className="fab fa-google-play"></i>
+                </a>
+
+                {/* Apple App Store */}
+                <a href="#">
+                  <i className="fab fa-app-store-ios"></i>
+                </a>
+
+                {/* Facebook */}
+                <a href="#">
+                  <i className="fab fa-facebook-f"></i>
+                </a>
+
+                {/* YouTube */}
+                <a href="#">
+                  <i className="fab fa-youtube"></i>
+                </a>
+
+                {/* Instagram */}
+                <a href="#">
+                  <i className="fab fa-instagram"></i>
+                </a>
+
+                {/* Twitter */}
+                <a href="#">
+                  <i className="fab fa-twitter"></i>
+                </a>
+              </div>
+
+              {/* <div className="social-icon">
+                 <a href="#">
+                  <i className="fab fa-playstore"></i>
+                </a>
                 <a href="#">
                   <i className="fab fa-facebook-f"></i>
                 </a>
@@ -262,7 +370,7 @@ export default function Header() {
                 <a href="#">
                   <i className="fab fa-twitter"></i>
                 </a>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -285,14 +393,23 @@ export default function Header() {
                     <ul>
                       {menusLoading && <li>Loading menus...</li>}
                       {menusError && <li>Error loading menu</li>}
-                      {!menusLoading && !menusError && menuItems.length > 0 && renderMenuList(menuItems)}
-                      {!menusLoading && !menusError && menuItems.length === 0 && (
-                        <>
-                          <li className={location.pathname === "/" ? "active" : ""}>
-                            <Link to="/">Home</Link>
-                          </li>
-                        </>
-                      )}
+                      {!menusLoading &&
+                        !menusError &&
+                        menuItems.length > 0 &&
+                        renderMenuList(menuItems)}
+                      {!menusLoading &&
+                        !menusError &&
+                        menuItems.length === 0 && (
+                          <>
+                            <li
+                              className={
+                                location.pathname === "/" ? "active" : ""
+                              }
+                            >
+                              <Link to="/">Home</Link>
+                            </li>
+                          </>
+                        )}
                     </ul>
                   </nav>
                 </div>
@@ -338,11 +455,7 @@ function BackToTop() {
   );
 }
 
-
-
-
 // --------------------------------------------------------------------
-
 
 // import { useState, useEffect } from "react";
 // import { Link, useLocation } from "react-router-dom";
@@ -665,7 +778,7 @@ function BackToTop() {
 //                           <li>
 //                             <Link to="/sire-directory">SIRE Directory</Link>
 //                           </li>
-                         
+
 //                           <li>
 //                             <Link to="/reports">Reports And Publications</Link>
 //                           </li>

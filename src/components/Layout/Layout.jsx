@@ -13,11 +13,10 @@ function reinitPlugins() {
     new window.WOW({ live: false }).init()
   }
 
-  // Nice Select
+  // Nice Select — destroy + reinit for any other selects on the page
   if ($.fn.niceSelect) {
     const $selects = $('.single-select')
     if ($selects.length) {
-      // Prevent duplicate .nice-select wrappers on re-init
       $selects.niceSelect('destroy')
       $selects.niceSelect()
     }

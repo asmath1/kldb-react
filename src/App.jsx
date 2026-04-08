@@ -30,6 +30,9 @@ import Recruitment from './pages/Recruitment'
 import Infrastructure from './pages/Infrastructure'
 import Product from './pages/Products'
 import Scenario from './pages/Scenario'
+import ReportsAndPublications from './pages/ReportsAndPublications'
+import InfrastructureDev from './pages/InfrastructureDev'
+import FodderDevelopment from './pages/FodderDevelopment'
 
 export default function App() {
   return (
@@ -55,16 +58,19 @@ export default function App() {
         <Route path="nlm-edp" element={<NLMEDP />} />
         <Route path="r-dev" element={<ResearchDevelopment />} />
         <Route path="scheme" element={< Scheme/>} />
-        <Route path="embryo-transfer" element={< Moet/>} />
+        <Route path="embryo-transfer-programme" element={< Moet/>} />
         <Route path="sire-selection" element={< SireSelection/>} />
         <Route path="rlfmc" element={< RLFMC/>} />
         <Route path="gallery-inner-1" element={< GalleryInner1/>} />
         <Route path="gallery-inner-2" element={< GalleryInner2/>} />
         <Route path="gallery-inner_2" element={< GalleryInnerSecond/>} />
         <Route path="career" element={< Recruitment/>} />
-        <Route path="infrastructure" element={< Infrastructure/>} />
+        <Route path="infra" element={< Infrastructure/>} />
         <Route path="product" element={< Product/>} />
         <Route path="current-breeding-program" element={< Scenario/>} />
+        <Route path="reports-and-publications" element={<ReportsAndPublications />} />
+        <Route path="infrastructure" element={<InfrastructureDev />} />
+        <Route path="fodder-development" element={<FodderDevelopment />} />
 
         <Route path="*" element={<NotFound />} />
       </Route>
