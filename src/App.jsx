@@ -17,7 +17,7 @@ import CALG from './pages/CALG'
 import RTI from './pages/RTI'
 import Training from './pages/Training'
 import NLMEDP from './pages/NLMEDP'
-import NotFound from './pages/NotFound'
+// import NotFound from './pages/NotFound'
 import FrozenSemenManagement from './pages/FrozenSemenManagement'
 import ResearchDevelopment from './pages/ResearchandDev'
 import Scheme from './pages/Scheme'
@@ -72,7 +72,7 @@ export default function App() {
         <Route path="infrastructure" element={<InfrastructureDev />} />
         <Route path="fodder-development" element={<FodderDevelopment />} />
 
-        <Route path="*" element={<NotFound />} />
+        {/* <Route path="*" element={<NotFound />} /> */}
       </Route>
     </Routes>
   )
