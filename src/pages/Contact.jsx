@@ -2,48 +2,54 @@ import { useState, useMemo } from "react";
 import Breadcrumb from "../components/common/Breadcrumb";
 import { useGetKeyPeopleContactsQuery } from "../redux/services/bannerApi";
 
-export default function Contact() {
-  const [open, setOpen] = useState("one");
-  const { data, isLoading, isError } = useGetKeyPeopleContactsQuery();
+const BASE = "https://livestock.cditproject.org";
 
-  const toggle = (id) => {
-    setOpen(open === id ? null : id);
-  };
+export default function Contact() {
+  const [open, setOpen] = useState(null);
+  const { data, isLoading, isError } = useGetKeyPeopleContactsQuery();
 
   const processedData = useMemo(() => {
     if (!data) return { topProfiles: [], teamGrid: [], units: [] };
 
-    const topProfiles =
-      data?.board_of_directors?.profiles?.slice(0, 2).map((p) => ({
-        id: p.id,
-        img: `https://livestock.cditproject.org${p.photo}`,
-        name: p.name,
-        bio: p.bio,
-        designation: p.designation,
-        phones: p.phones || [],
-        emails: p.emails || [],
-      })) || [];
+    // ✅ Remove duplicates using ID
+    const uniqueProfiles = Array.from(
+      new Map(
+        (data?.board_of_directors?.profiles || []).map((p) => [p.id, p])
+      ).values()
+    );
 
-    const teamGrid =
-      data?.board_of_directors?.profiles?.map((p) => ({
-        id: p.id,
-        img: `https://livestock.cditproject.org${p.photo}`,
-        name: p.name,
-        title: p.designation,
-        bio: p.bio,
-        phone: p.phones?.[0] || "-",
-        mail: p.emails?.[0] || "-",
-      })) || [];
+    // ✅ Top 2 Profiles
+    const topProfiles = uniqueProfiles.slice(0, 2).map((p) => ({
+      id: p.id,
+      img: `${BASE}${p.photo}`,
+      name: p.name,
+      bio: p.bio,
+      designation: p.designation,
+      phones: p.phones || [],
+      emails: p.emails || [],
+    }));
 
+    // ✅ Remaining Profiles (NO DUPLICATION)
+    const teamGrid = uniqueProfiles.slice(2).map((p) => ({
+      id: p.id,
+      img: `${BASE}${p.photo}`,
+      name: p.name,
+      title: p.designation,
+      bio: p.bio,
+      phone: p.phones?.[0] || "-",
+      mail: p.emails?.[0] || "-",
+    }));
+
+    // ✅ Units Data
     const units =
       data?.units?.map((unit) => ({
         id: unit.category.id,
         name: unit.category.name,
         slug: unit.category.slug,
         description: unit.category.description,
-        profiles: unit.profiles.map((p) => ({
+        profiles: (unit.profiles || []).map((p) => ({
           id: p.id,
-          img: `https://livestock.cditproject.org${p.photo}`,
+          img: `${BASE}${p.photo}`,
           name: p.name,
           title: p.designation,
           phone: p.phones?.[0] || "-",
@@ -59,7 +65,10 @@ export default function Contact() {
 
   return (
     <>
-      <Breadcrumb title="Board of Directors" crumbs={[{ label: "Board of Directors" }]} />
+      <Breadcrumb
+        title="Board of Directors"
+        crumbs={[{ label: "Board of Directors" }]}
+      />
 
       <section className="blog-wrapper section-padding-inner">
         <div className="container">
@@ -70,12 +79,14 @@ export default function Contact() {
                   <div className="single-blog-post post-details mt-0">
                     <div className="text-center post-content pt-0">
 
-                      <h2 className="wow fadeInDown">Board of Directors</h2>
+                      <h2 className="wow fadeInDown">
+                        Board of Directors
+                      </h2>
                       <br />
 
                       <div className="contactT">
 
-                        {/* TOP PROFILES */}
+                        {/* 🔹 TOP PROFILES */}
                         <div className="top-profiles mt-0">
                           {processedData.topProfiles.map((profile) => (
                             <div key={profile.id} className="profile">
@@ -83,13 +94,15 @@ export default function Contact() {
                               <div className="name">{profile.name}</div>
                               <div className="role">
                                 <h6>{profile.designation}</h6>
-                                {profile.bio && <small>{profile.bio}</small>}
+                                {profile.bio && (
+                                  <small>{profile.bio}</small>
+                                )}
                               </div>
                             </div>
                           ))}
                         </div>
 
-                        {/* TEAM GRID */}
+                        {/* 🔹 TEAM GRID */}
                         <div className="team-panel">
                           <div className="team-grid">
                             {processedData.teamGrid.map((item) => (
@@ -106,42 +119,74 @@ export default function Contact() {
                           </div>
                         </div>
 
-                        {/* ACCORDION */}
+                        {/* 🔹 ACCORDION */}
                         <div className="accord">
                           <div className="accordion">
-                            {processedData.units.map((unit, unitIndex) => (
+                            {processedData.units.map((unit) => (
                               <div key={unit.id} className="accordion-item">
+
                                 <button
-                                  className={`accordion-button ${open === unit.slug ? "" : "collapsed"}`}
-                                  onClick={() => open === unit.slug ? setOpen(null) : setOpen(unit.slug)}
+                                  className={`accordion-button ${
+                                    open === unit.slug ? "" : "collapsed"
+                                  }`}
+                                  onClick={() =>
+                                    setOpen(
+                                      open === unit.slug ? null : unit.slug
+                                    )
+                                  }
                                 >
                                   <div>
-                                    <div className="iconc">📍 {unit.name}</div>
-                                    <p className="m-0 ads">{unit.description || ""}</p>
+                                    <div className="iconc">
+                                      📍 {unit.name}
+                                    </div>
+                                    <p className="m-0 ads">
+                                      {unit.description || ""}
+                                    </p>
                                   </div>
                                 </button>
 
-                                <div className={`accordion-collapse ${open === unit.slug ? "show" : "collapse"}`}>
+                                <div
+                                  className={`accordion-collapse ${
+                                    open === unit.slug ? "show" : "collapse"
+                                  }`}
+                                >
                                   <div className="accordion-body">
-                                    {unit.profiles && unit.profiles.length > 0 ? (
+                                    {unit.profiles.length > 0 ? (
                                       <div className="team-grid2">
                                         {unit.profiles.map((profile) => (
-                                          <div key={profile.id} className="card">
-                                            <img src={profile.img} alt={profile.name} />
-                                            <div className="name">{profile.name}</div>
-                                            <div className="title">{profile.title}</div>
+                                          <div
+                                            key={profile.id}
+                                            className="card"
+                                          >
+                                            <img
+                                              src={profile.img}
+                                              alt={profile.name}
+                                            />
+                                            <div className="name">
+                                              {profile.name}
+                                            </div>
+                                            <div className="title">
+                                              {profile.title}
+                                            </div>
                                             <div className="infox">
-                                              <div className="phm">{profile.phone}</div>
-                                              <div className="mail">{profile.mail}</div>
+                                              <div className="phm">
+                                                {profile.phone}
+                                              </div>
+                                              <div className="mail">
+                                                {profile.mail}
+                                              </div>
                                             </div>
                                           </div>
                                         ))}
                                       </div>
                                     ) : (
-                                      <p>No staff information available</p>
+                                      <p>
+                                        No staff information available
+                                      </p>
                                     )}
                                   </div>
                                 </div>
+
                               </div>
                             ))}
                           </div>
@@ -160,6 +205,170 @@ export default function Contact() {
     </>
   );
 }
+
+
+// import { useState, useMemo } from "react";
+// import Breadcrumb from "../components/common/Breadcrumb";
+// import { useGetKeyPeopleContactsQuery } from "../redux/services/bannerApi";
+
+// export default function Contact() {
+//   const [open, setOpen] = useState("one");
+//   const { data, isLoading, isError } = useGetKeyPeopleContactsQuery();
+
+//   const toggle = (id) => {
+//     setOpen(open === id ? null : id);
+//   };
+
+//   const processedData = useMemo(() => {
+//     if (!data) return { topProfiles: [], teamGrid: [], units: [] };
+
+//     const topProfiles =
+//       data?.board_of_directors?.profiles?.slice(0, 2).map((p) => ({
+//         id: p.id,
+//         img: `https://livestock.cditproject.org${p.photo}`,
+//         name: p.name,
+//         bio: p.bio,
+//         designation: p.designation,
+//         phones: p.phones || [],
+//         emails: p.emails || [],
+//       })) || [];
+
+//     const teamGrid =
+//       data?.board_of_directors?.profiles?.map((p) => ({
+//         id: p.id,
+//         img: `https://livestock.cditproject.org${p.photo}`,
+//         name: p.name,
+//         title: p.designation,
+//         bio: p.bio,
+//         phone: p.phones?.[0] || "-",
+//         mail: p.emails?.[0] || "-",
+//       })) || [];
+
+//     const units =
+//       data?.units?.map((unit) => ({
+//         id: unit.category.id,
+//         name: unit.category.name,
+//         slug: unit.category.slug,
+//         description: unit.category.description,
+//         profiles: unit.profiles.map((p) => ({
+//           id: p.id,
+//           img: `https://livestock.cditproject.org${p.photo}`,
+//           name: p.name,
+//           title: p.designation,
+//           phone: p.phones?.[0] || "-",
+//           mail: p.emails?.[0] || "-",
+//         })),
+//       })) || [];
+
+//     return { topProfiles, teamGrid, units };
+//   }, [data]);
+
+//   if (isLoading) return <p>Loading...</p>;
+//   if (isError) return <p>Failed to load data.</p>;
+
+//   return (
+//     <>
+//       <Breadcrumb title="Board of Directors" crumbs={[{ label: "Board of Directors" }]} />
+
+//       <section className="blog-wrapper section-padding-inner">
+//         <div className="container">
+//           <div className="news-area">
+//             <div className="row">
+//               <div className="col-12">
+//                 <div className="blog-post-details border-wrap mt-0">
+//                   <div className="single-blog-post post-details mt-0">
+//                     <div className="text-center post-content pt-0">
+
+//                       <h2 className="wow fadeInDown">Board of Directors</h2>
+//                       <br />
+
+//                       <div className="contactT">
+
+//                         {/* TOP PROFILES */}
+//                         <div className="top-profiles mt-0">
+//                           {processedData.topProfiles.map((profile) => (
+//                             <div key={profile.id} className="profile">
+//                               <img src={profile.img} alt={profile.name} />
+//                               <div className="name">{profile.name}</div>
+//                               <div className="role">
+//                                 <h6>{profile.designation}</h6>
+//                                 {profile.bio && <small>{profile.bio}</small>}
+//                               </div>
+//                             </div>
+//                           ))}
+//                         </div>
+
+//                         {/* TEAM GRID */}
+//                         <div className="team-panel">
+//                           <div className="team-grid">
+//                             {processedData.teamGrid.map((item) => (
+//                               <div key={item.id} className="card">
+//                                 <img src={item.img} alt={item.name} />
+//                                 <div className="name">{item.name}</div>
+//                                 <div className="title">{item.title}</div>
+//                                 <div className="infox">
+//                                   <div className="phm">{item.phone}</div>
+//                                   <div className="mail">{item.mail}</div>
+//                                 </div>
+//                               </div>
+//                             ))}
+//                           </div>
+//                         </div>
+
+//                         {/* ACCORDION */}
+//                         <div className="accord">
+//                           <div className="accordion">
+//                             {processedData.units.map((unit, unitIndex) => (
+//                               <div key={unit.id} className="accordion-item">
+//                                 <button
+//                                   className={`accordion-button ${open === unit.slug ? "" : "collapsed"}`}
+//                                   onClick={() => open === unit.slug ? setOpen(null) : setOpen(unit.slug)}
+//                                 >
+//                                   <div>
+//                                     <div className="iconc">📍 {unit.name}</div>
+//                                     <p className="m-0 ads">{unit.description || ""}</p>
+//                                   </div>
+//                                 </button>
+
+//                                 <div className={`accordion-collapse ${open === unit.slug ? "show" : "collapse"}`}>
+//                                   <div className="accordion-body">
+//                                     {unit.profiles && unit.profiles.length > 0 ? (
+//                                       <div className="team-grid2">
+//                                         {unit.profiles.map((profile) => (
+//                                           <div key={profile.id} className="card">
+//                                             <img src={profile.img} alt={profile.name} />
+//                                             <div className="name">{profile.name}</div>
+//                                             <div className="title">{profile.title}</div>
+//                                             <div className="infox">
+//                                               <div className="phm">{profile.phone}</div>
+//                                               <div className="mail">{profile.mail}</div>
+//                                             </div>
+//                                           </div>
+//                                         ))}
+//                                       </div>
+//                                     ) : (
+//                                       <p>No staff information available</p>
+//                                     )}
+//                                   </div>
+//                                 </div>
+//                               </div>
+//                             ))}
+//                           </div>
+//                         </div>
+
+//                       </div>
+
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </section>
+//     </>
+//   );
+// }
 
 
 
